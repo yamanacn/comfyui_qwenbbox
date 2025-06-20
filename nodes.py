@@ -190,14 +190,31 @@ class QwenBbox:
         unload_after_detection: bool = True,
         sort_method: str = "none",
     ):
+        if qwen_model.model is None or qwen_model.processor is None:
+            print("Qwen Model not loaded. Reloading...")
+            try:
+                loader = LoadQwenModel()
+                params = qwen_model.original_params
+                if not params:
+                    raise RuntimeError("Original model parameters not found. Cannot reload.")
+                
+                reloaded_model_tuple = loader.load(
+                    model_name=params['model_name'],
+                    device=params['device'],
+                    precision=params['precision'],
+                    attention=params['attention']
+                )
+                reloaded_model = reloaded_model_tuple[0]
+                qwen_model.model = reloaded_model.model
+                qwen_model.processor = reloaded_model.processor
+                print("Qwen Model reloaded successfully.")
+            except Exception as e:
+                traceback.print_exc()
+                raise RuntimeError(f"Failed to reload Qwen Model: {e}")
+
         model = qwen_model.model
         processor = qwen_model.processor
         
-        if model is None or processor is None:
-            # For simplicity in this new version, we'll just raise an error.
-            # In a real-world robust scenario, we'd implement the auto-reload logic.
-            raise ValueError("Qwen Model is not loaded. Please connect a valid model.")
-
         device = qwen_model.device
         if device == "auto":
             device = str(next(model.parameters()).device)
