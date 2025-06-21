@@ -106,7 +106,6 @@ class LoadQwenModel:
                     "Qwen/Qwen2.5-VL-3B-Instruct",
                     "Qwen/Qwen2.5-VL-7B-Instruct",
                 ],),
-                "device": (["auto", "cuda:0", "cuda:1", "cpu"],),
                 "precision": (["FP16", "INT8"],),
             }
         }
@@ -116,7 +115,8 @@ class LoadQwenModel:
     FUNCTION = "load"
     CATEGORY = "qwen_object_v2"
 
-    def load(self, model_name: str, device: str, precision: str):
+    def load(self, model_name: str, precision: str):
+        device = "cuda:0"
         original_params = {
             "model_name": model_name,
             "device": device,
@@ -133,7 +133,7 @@ class LoadQwenModel:
                 resume_download=True,
             )
         
-        device_map = "auto" if device == "auto" else {"": device}
+        device_map = {"": device}
         
         torch_dtype = torch.float16  # Default to float16 for both FP16 and INT8 loading
         
@@ -198,7 +198,6 @@ class QwenBbox:
                 
                 reloaded_model_tuple = loader.load(
                     model_name=params['model_name'],
-                    device=params['device'],
                     precision=params['precision']
                 )
                 reloaded_model = reloaded_model_tuple[0]
