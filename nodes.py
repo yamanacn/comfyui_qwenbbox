@@ -108,7 +108,6 @@ class LoadQwenModel:
                 ],),
                 "device": (["auto", "cuda:0", "cuda:1", "cpu"],),
                 "precision": (["FP16", "INT8"],),
-                "attention": (["flash_attention_2", "sdpa"],),
             }
         }
 
@@ -117,12 +116,11 @@ class LoadQwenModel:
     FUNCTION = "load"
     CATEGORY = "qwen_object_v2"
 
-    def load(self, model_name: str, device: str, precision: str, attention: str):
+    def load(self, model_name: str, device: str, precision: str):
         original_params = {
             "model_name": model_name,
             "device": device,
             "precision": precision,
-            "attention": attention,
         }
         model_dir = os.path.join(folder_paths.models_dir, "Qwen", model_name.replace("/", "_"))
         
@@ -143,7 +141,7 @@ class LoadQwenModel:
         if precision == "INT8":
             quant_config = BitsAndBytesConfig(load_in_8bit=True)
 
-        attn_impl = attention
+        attn_impl = "sdpa"
 
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
             model_dir,
@@ -201,8 +199,7 @@ class QwenBbox:
                 reloaded_model_tuple = loader.load(
                     model_name=params['model_name'],
                     device=params['device'],
-                    precision=params['precision'],
-                    attention=params['attention']
+                    precision=params['precision']
                 )
                 reloaded_model = reloaded_model_tuple[0]
                 qwen_model.model = reloaded_model.model
